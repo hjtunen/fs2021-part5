@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react'
 import Blog from './components/Blog'
 import blogService from './services/blogs'
 import loginService from './services/login'
+import Notification from './components/Notification'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
-  const [username, setUsername] = useState('') 
-  const [password, setPassword] = useState('')
+  const [username, setUsername] = useState('user') 
+  const [password, setPassword] = useState('password')
   const [errorMessage, setErrorMessage] = useState(null)
   const [user, setUser] = useState(null)
 
@@ -115,6 +116,12 @@ const App = () => {
         .create(blogObject)
           .then(returnedBlog => {
           setBlogs(blogs.concat(returnedBlog))
+
+          setErrorMessage(`a new blog ${newTitle} by ${newAuthor} added`)
+          setTimeout(() => {
+            setErrorMessage(null)
+          }, 5000)    
+
           setTitle('')
           setAuthor('')
           setUrl('')
@@ -164,6 +171,7 @@ const App = () => {
 
   return (
     <div>
+      <Notification message={errorMessage} />
       {user === null ?
         loginForm() :
         <div>
