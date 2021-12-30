@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Blog from './components/Blog'
 import blogService from './services/blogs'
 import loginService from './services/login'
 import Notification from './components/Notification'
+import BlogForm from './components/BlogForm'
+import Togglable from './components/Togglable'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
@@ -11,9 +13,8 @@ const App = () => {
   const [errorMessage, setErrorMessage] = useState(null)
   const [user, setUser] = useState(null)
 
-  const [newTitle, setTitle] = useState('')
-  const [newAuthor, setAuthor] = useState('')
-  const [newUrl, setUrl] = useState('')
+  const blogFormRef = useRef()
+
 
   useEffect(() => {
     blogService.getAll().then(blogs =>
@@ -89,71 +90,27 @@ const App = () => {
       </div>
     )
 
-    const handleTitleChange = (event) => {
-      console.log(event.target.value)
-      setTitle(event.target.value)
-    }
 
-    const handleAuthorChange = (event) => {
-      console.log(event.target.value)
-      setAuthor(event.target.value)
-    }
-
-    const handleUrlChange = (event) => {
-      console.log(event.target.value)
-      setUrl(event.target.value)
-    }
-
-    const addBlog = (event) => {
-      event.preventDefault()
-      const blogObject = {
-        title: newTitle,
-        author: newAuthor,
-        url: newUrl
-      }
-  
+    const addBlog = (blogObject) => {
+      blogFormRef.current.toggleVisibility()
       blogService
         .create(blogObject)
           .then(returnedBlog => {
           setBlogs(blogs.concat(returnedBlog))
 
-          setErrorMessage(`a new blog ${newTitle} by ${newAuthor} added`)
+          setErrorMessage(`a new blog ${returnedBlog.title} by ${returnedBlog.author} added`)
           setTimeout(() => {
             setErrorMessage(null)
           }, 5000)    
-
-          setTitle('')
-          setAuthor('')
-          setUrl('')
         })
     }
 
     const blogForm = () => (
-      <div>
-        <h2>create new</h2>
-        <form onSubmit={addBlog}>
-          Title:
-          <input
-            value={newTitle}
-            onChange={handleTitleChange}
-          />
-          <br></br>
-          Author:
-          <input
-            value={newAuthor}
-            onChange={handleAuthorChange}
-          />
-          <br></br>
-          URL:
-          <input
-            value={newUrl}
-            onChange={handleUrlChange}
-          />
-          <br></br>
-          <button type="submit">create</button>
-        </form> 
-      </div> 
+      <Togglable buttonLabel="create new blog" ref={blogFormRef}>
+        <BlogForm createBlog={addBlog} />
+      </Togglable>
     )
+
 
 
     const loggedUser = () => (
@@ -176,6 +133,7 @@ const App = () => {
         loginForm() :
         <div>
           {loggedUser()}
+          <br></br>
           {blogForm()}
           {blogsRender()}
         </div>
